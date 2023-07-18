@@ -2,7 +2,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import { ScopeType } from "@fluidframework/azure-client";
 import { generateToken } from "@fluidframework/azure-service-utils";
 import { DefaultAzureCredential } from "@azure/identity";
-import { SecretClient } from "@azure/keyvault-secrets";
+import { KeyVaultSecret, SecretClient } from "@azure/keyvault-secrets";
 
 
 const vaultName = "HoloCollab-Key-Valut";
@@ -13,10 +13,11 @@ export async function JWTProvider(req: HttpRequest, context: InvocationContext):
     context.log(`JWTProvider called with query params: ${JSON.stringify(req.query)}`);
 
     context.log(`Getting key from Azure Key Vault: ${vaultName} / ${secretName}`);
+    let key: KeyVaultSecret | undefined = undefined;
     try {
         const credential = new DefaultAzureCredential();
         const client = new SecretClient(`https://${vaultName}.vault.azure.net`, credential);
-        const key = await client.getSecret(secretName);
+        key = await client.getSecret(secretName);
     } catch (error) {
         context.log(`Error getting key from Azure Key Vault: ${error}`);
         return { status: 500, body: `Error getting key from Azure Key Vault: ${error}` };
