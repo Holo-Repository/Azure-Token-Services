@@ -12,6 +12,7 @@ export async function JWTProvider(req: HttpRequest, context: InvocationContext):
     const key = process.env[secretName] as string | undefined;
     if (!key)
         return { status: 404, body: `No key found for the provided secret name: ${secretName}` };
+    context.log(`JWTProvider found key for secret name: ${secretName}: ${key}`);
 
     // tenantId, documentId, userId and userName are required parameters
     const tenantId = req.query.get('tenantId') as string;
