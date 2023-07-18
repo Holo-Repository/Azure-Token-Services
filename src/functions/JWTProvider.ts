@@ -1,27 +1,17 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { ScopeType } from "@fluidframework/azure-client";
 import { generateToken } from "@fluidframework/azure-service-utils";
-import { DefaultAzureCredential } from "@azure/identity";
-import { KeyVaultSecret, SecretClient } from "@azure/keyvault-secrets";
 
 
-const vaultName = "HoloCollab-Key-Valut";
-const secretName = "Fluid-Relay-Key1";
+const secretName = "FluidRelayKey";
 
 
 export async function JWTProvider(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`JWTProvider called with query params: ${JSON.stringify(req.query)}`);
 
-    context.log(`Getting key from Azure Key Vault: ${vaultName} / ${secretName}`);
-    let key: KeyVaultSecret | undefined = undefined;
-    try {
-        const credential = new DefaultAzureCredential();
-        const client = new SecretClient(`https://${vaultName}.vault.azure.net`, credential);
-        key = await client.getSecret(secretName);
-    } catch (error) {
-        context.log(`Error getting key from Azure Key Vault: ${error}`);
-        return { status: 500, body: `Error getting key from Azure Key Vault: ${error}` };
-    }
+    const key = process.env[secretName] as string | undefined;
+    if (!key)
+        return { status: 404, body: `No key found for the provided secret name: ${secretName}` };
 
     // tenantId, documentId, userId and userName are required parameters
     const tenantId = req.query.get('tenantId') as string;
@@ -42,7 +32,7 @@ export async function JWTProvider(req: HttpRequest, context: InvocationContext):
     // Will generate the token and returned by an ITokenProvider implementation to use with the AzureClient.
     const token = generateToken(
         tenantId,
-        key.value,
+        key,
         scopes ?? [ScopeType.DocRead, ScopeType.DocWrite, ScopeType.SummaryWrite],
         documentId,
         user
