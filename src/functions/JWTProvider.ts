@@ -1,14 +1,20 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { ScopeType } from "@fluidframework/azure-client";
 import { generateToken } from "@fluidframework/azure-service-utils";
+import { DefaultAzureCredential } from "@azure/identity";
+import { SecretClient } from "@azure/keyvault-secrets";
 
 
-// NOTE: retrieve the key from a secure location.
-const key = "myTenantKey";
+const vaultName = "HoloCollab-Key-Valut";
+const secretName = "Fluid-Relay-Key1";
 
 
 export async function JWTProvider(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`JWTProvider called with query params: ${JSON.stringify(req.query)}`);
+
+    const credential = new DefaultAzureCredential();
+    const client = new SecretClient(`https://${vaultName}.vault.azure.net`, credential);
+    const key = await client.getSecret(secretName);
 
     // tenantId, documentId, userId and userName are required parameters
     const tenantId = req.query.get('tenantId') as string;
@@ -29,7 +35,7 @@ export async function JWTProvider(req: HttpRequest, context: InvocationContext):
     // Will generate the token and returned by an ITokenProvider implementation to use with the AzureClient.
     const token = generateToken(
         tenantId,
-        key,
+        key.value,
         scopes ?? [ScopeType.DocRead, ScopeType.DocWrite, ScopeType.SummaryWrite],
         documentId,
         user
