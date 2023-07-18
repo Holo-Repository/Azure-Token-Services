@@ -12,9 +12,15 @@ const secretName = "Fluid-Relay-Key1";
 export async function JWTProvider(req: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`JWTProvider called with query params: ${JSON.stringify(req.query)}`);
 
-    const credential = new DefaultAzureCredential();
-    const client = new SecretClient(`https://${vaultName}.vault.azure.net`, credential);
-    const key = await client.getSecret(secretName);
+    context.log(`Getting key from Azure Key Vault: ${vaultName} / ${secretName}`);
+    try {
+        const credential = new DefaultAzureCredential();
+        const client = new SecretClient(`https://${vaultName}.vault.azure.net`, credential);
+        const key = await client.getSecret(secretName);
+    } catch (error) {
+        context.log(`Error getting key from Azure Key Vault: ${error}`);
+        return { status: 500, body: `Error getting key from Azure Key Vault: ${error}` };
+    }
 
     // tenantId, documentId, userId and userName are required parameters
     const tenantId = req.query.get('tenantId') as string;
