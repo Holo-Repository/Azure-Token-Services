@@ -41,4 +41,4 @@ jobs:
           app-name: 'Fluid-Relay-JWT-Provider'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0F1BB4C04002429091E41B74DBAB9721 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_16EE6B3418904C38860FA2D53FB168FB }}
